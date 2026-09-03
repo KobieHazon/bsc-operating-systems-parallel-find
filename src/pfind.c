@@ -245,9 +245,13 @@ int main(int argc, char *argv[]) {
 	memset(&act_sigint, '\0', sizeof(act_sigint));
     act_sigint.sa_sigaction = &handle_sigint;
     act_sigint.sa_flags = SA_SIGINFO;
-    if (sigaction(SIGINT, &act_sigint, NULL) < 0)
+	    if (sigaction(SIGINT, &act_sigint, NULL) < 0)
 		exit(IS_ERROR);
 	TAILQ_INIT(&dir_head);
+	if ((error_check = pthread_mutex_init(&queue_lock, NULL)))
+		exit(IS_ERROR);
+	if (pthread_cond_init(&wait_cond, NULL))
+		exit(IS_ERROR);
 	if (!add_dir(argv[1]))
 		exit(IS_ERROR);
 	if ((thread_ids = malloc(sizeof(pthread_t) * (thread_num + 1))) == NULL)
@@ -260,10 +264,6 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < thread_num; i++)
 		file_paths[i] = malloc(1);
 	awake_num = thread_num;
-	if ((error_check = pthread_mutex_init(&queue_lock, NULL)))
-		exit(IS_ERROR);
-	if (pthread_cond_init(&wait_cond, NULL))
-		exit(IS_ERROR);
 		
 	for(created = 0; created < thread_num; created++) {
 		if ((error_check = pthread_create(&thread_ids[created], NULL, search_thread, (void *)created))) 
