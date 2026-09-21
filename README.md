@@ -1,6 +1,6 @@
 # BSc Operating Systems - Parallel Find
 
-- Course: BSc Computer Science.
+- Course: Operating Systems.
 - My implementation is kept separately from supplied exercise files.
 
 ## Contents
