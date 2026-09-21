@@ -7,6 +7,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <limits.h>
 
 #define NOT_DOT(str) strcmp(str, ".") && strcmp(str, "..") //Ignore . .. files
 #define DONE_STRING "Done searching, found %d files\n"
@@ -201,7 +202,13 @@ void *search_thread(void* input) {
 			if (NOT_DOT(dp->d_name)) {
 				file_path = create_file_path(file_path, 
 				entry->dir_path, dp->d_name);
-				stat(file_path, &dir_stat);
+				if (!file_path) {
+					closedir(search_dir);
+					free_dir_entry(entry);
+					exit_thread(NULL, IS_ERROR);
+				}
+				if (lstat(file_path, &dir_stat) < 0 || S_ISLNK(dir_stat.st_mode))
+					continue;
 				if (S_ISDIR(dir_stat.st_mode)) {
 					if (!add_dir(file_path))
 						exit_thread(file_path, IS_ERROR);
@@ -234,13 +241,22 @@ int main(int argc, char *argv[]) {
 	long int i;
 	struct sigaction act_sigint;
 	
-	if (argc != 4)
-		exit(IS_ERROR);
-	if (stat(argv[1], &path_dir) < 0 || !S_ISDIR(path_dir.st_mode))
-		exit(IS_ERROR);
-	if (argv[3][0] == '-' || (thread_num = atoi(argv[3])) == 0 ||
-	thread_num == 0) 
-		exit(IS_ERROR);
+	if (argc != 4) {
+		fprintf(stderr, "Usage: %s DIRECTORY FILENAME_SUBSTRING THREAD_COUNT\n", argv[0]);
+		return IS_ERROR;
+	}
+	if (stat(argv[1], &path_dir) < 0 || !S_ISDIR(path_dir.st_mode)) {
+		fprintf(stderr, "Search directory does not exist or is not a directory: %s\n", argv[1]);
+		return IS_ERROR;
+	}
+	char *end;
+	errno = 0;
+	long requested = strtol(argv[3], &end, 10);
+	if (errno || end == argv[3] || *end || requested < 1 || requested >= INT_MAX) {
+		fprintf(stderr, "THREAD_COUNT must be a positive integer smaller than %d\n", INT_MAX);
+		return IS_ERROR;
+	}
+	thread_num = (int)requested;
 	
 	memset(&act_sigint, '\0', sizeof(act_sigint));
     act_sigint.sa_sigaction = &handle_sigint;

@@ -1,9 +1,24 @@
-.PHONY: check clean
+CC ?= cc
+CFLAGS ?= -std=gnu11 -Wall -Wextra -Wno-unused-parameter
+DIRECTORY ?= src
+PATTERN ?= .c
+THREADS ?= 4
 
-check:
+.PHONY: all build run test check clean
+all: build
+build: build/pfind
+
+build/pfind: src/pfind.c
 	mkdir -p build
-	cc -std=gnu11 -Wall -Wextra -Wno-unused-parameter -pthread -o build/pfind src/pfind.c
-	./build/pfind . README 1
+	$(CC) $(CPPFLAGS) $(CFLAGS) -pthread -o $@ src/pfind.c
+
+run: build
+	./build/pfind "$(DIRECTORY)" "$(PATTERN)" "$(THREADS)"
+
+test: build
+	uv run --no-project python tests/test_pfind.py build/pfind
+
+check: test
 
 clean:
 	rm -rf build
