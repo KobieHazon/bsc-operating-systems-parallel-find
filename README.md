@@ -1,18 +1,14 @@
 # BSc Operating Systems - Parallel Find
 
-A historical archive of my CS BSc coursework.
+- Course: BSc Computer Science.
+- Available copy: 2019–2020.
+- Supplied exercise material is identified separately below.
+- My implementation is kept separately from supplied exercise files.
+- Submitted ZIP wrappers and Apple resource forks were omitted.
 
 ## Contents
 
 Multithreaded recursive file search coursework using pthreads, a shared directory queue, condition variables, and SIGINT handling.
-
-## Provenance
-
-- Era: CS BSc.
-- Last recovered work: 2019-2020 archive copy.
-- Supplied exercise material is identified separately below.
-- My implementation is kept separately from supplied exercise files.
-- Submitted ZIP wrappers and Apple resource forks were omitted.
 
 ## Files
 
